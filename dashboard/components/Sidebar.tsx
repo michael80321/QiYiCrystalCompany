@@ -6,6 +6,7 @@ const nav = [
   { href: "/",             label: "今日總覽",   icon: "🏠" },
   { href: "/agents",       label: "員工控制台", icon: "🤖" },
   { href: "/review",       label: "內容審核",   icon: "✅" },
+  { href: "/inventory",    label: "庫存管理",   icon: "📦" },
   { href: "/performance",  label: "帶貨成效",   icon: "📈" },
   { href: "/intelligence", label: "市場情報",   icon: "🔍" },
 ];
