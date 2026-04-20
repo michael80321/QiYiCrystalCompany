@@ -89,7 +89,7 @@ def run():
         logger.info("呼叫 Claude API 分析市場情報...")
         response = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=2000,
+            max_tokens=4000,
             messages=[{
                 "role": "user",
                 "content": INTELLIGENCE_PROMPT.format(date=today)
