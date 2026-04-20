@@ -114,7 +114,7 @@ def run():
             sheets.append_row("審核隊列", [
                 post_id,
                 post.get("type", ""),
-                post.get("content", "")[:100] + "...",
+                post.get("content", ""),
                 post.get("language", ""),
                 post.get("platform", ""),
                 post.get("scheduled_time", ""),
