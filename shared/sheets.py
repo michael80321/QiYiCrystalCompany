@@ -1,4 +1,5 @@
 import os
+import json
 import yaml
 import gspread
 from google.oauth2.service_account import Credentials
@@ -16,10 +17,16 @@ _sheet = None
 def _get_client():
     global _client
     if _client is None:
-        creds = Credentials.from_service_account_file(
-            os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "service_account.json"),
-            scopes=SCOPES,
-        )
+        # GitHub Actions: JSON 內容放在環境變數裡
+        # 本地開發: 從 service_account.json 檔案讀取
+        json_env = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+        if json_env.strip().startswith("{"):
+            info = json.loads(json_env)
+            creds = Credentials.from_service_account_info(info, scopes=SCOPES)
+        else:
+            creds = Credentials.from_service_account_file(
+                json_env or "service_account.json", scopes=SCOPES
+            )
         _client = gspread.authorize(creds)
     return _client
 

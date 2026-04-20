@@ -67,10 +67,14 @@ AGENT_LIST = [
 
 
 def setup():
-    creds = Credentials.from_service_account_file(
-        os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "service_account.json"),
-        scopes=SCOPES,
-    )
+    import json as _json
+    json_env = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+    if json_env.strip().startswith("{"):
+        creds = Credentials.from_service_account_info(_json.loads(json_env), scopes=SCOPES)
+    else:
+        creds = Credentials.from_service_account_file(
+            json_env or "service_account.json", scopes=SCOPES
+        )
     client = gspread.authorize(creds)
     sheets_id = os.environ["SHEETS_ID"]
     spreadsheet = client.open_by_key(sheets_id)
