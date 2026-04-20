@@ -23,6 +23,11 @@ PAGE_ID = os.environ.get("META_PAGE_ID", "")
 IG_ACCOUNT_ID = os.environ.get("META_IG_ACCOUNT_ID", "")
 ACCESS_TOKEN = os.environ.get("META_PAGE_ACCESS_TOKEN", "")
 
+# Threads API
+THREADS_API = "https://graph.threads.net/v1.0"
+THREADS_USER_ID = os.environ.get("THREADS_USER_ID", "")
+THREADS_TOKEN = os.environ.get("THREADS_ACCESS_TOKEN", "")
+
 
 def post_to_instagram(caption: str, image_url: str = None) -> str | None:
     """發佈到 Instagram（需要圖片 URL，或純文字限動）"""
@@ -95,6 +100,48 @@ def post_to_facebook(message: str, image_url: str = None) -> str | None:
     return None
 
 
+def post_to_threads(text: str) -> str | None:
+    """發佈純文字到 Threads"""
+    if not THREADS_USER_ID or not THREADS_TOKEN:
+        logger.warning("THREADS_USER_ID 或 THREADS_ACCESS_TOKEN 未設定，跳過 Threads")
+        return None
+
+    try:
+        # Step 1: 建立 container
+        container_resp = requests.post(
+            f"{THREADS_API}/{THREADS_USER_ID}/threads",
+            params={
+                "media_type": "TEXT",
+                "text": text,
+                "access_token": THREADS_TOKEN,
+            },
+            timeout=30,
+        )
+        if container_resp.status_code != 200:
+            logger.error(f"Threads container 失敗：{container_resp.text[:200]}")
+            return None
+        container_id = container_resp.json().get("id")
+
+        # Step 2: 發佈
+        publish_resp = requests.post(
+            f"{THREADS_API}/{THREADS_USER_ID}/threads_publish",
+            params={
+                "creation_id": container_id,
+                "access_token": THREADS_TOKEN,
+            },
+            timeout=30,
+        )
+        if publish_resp.status_code == 200:
+            post_id = publish_resp.json().get("id")
+            logger.info(f"  Threads 發佈成功：{post_id}")
+            return post_id
+        else:
+            logger.error(f"Threads 發佈失敗：{publish_resp.text[:200]}")
+    except Exception as e:
+        logger.error(f"Threads 發佈錯誤：{e}")
+    return None
+
+
 def run():
     logger.info(f"=== {AGENT_NAME} 開始執行 ===")
     start_time = datetime.now()
@@ -122,15 +169,18 @@ def run():
             image_url = item.get("圖片網址", "") or None
             post_id_ig = None
             post_id_fb = None
+            post_id_threads = None
 
             # Instagram
             post_id_ig = post_to_instagram(content, image_url)
             # Facebook
             post_id_fb = post_to_facebook(content, image_url)
+            # Threads（純文字）
+            post_id_threads = post_to_threads(content)
 
-            if post_id_ig or post_id_fb:
+            if post_id_ig or post_id_fb or post_id_threads:
                 published += 1
-                logger.info(f"  [{item.get('ID')}] 發佈完成 IG={post_id_ig} FB={post_id_fb}")
+                logger.info(f"  [{item.get('ID')}] 發佈完成 IG={post_id_ig} FB={post_id_fb} Threads={post_id_threads}")
             else:
                 failed += 1
                 logger.warning(f"  [{item.get('ID')}] 發佈失敗")

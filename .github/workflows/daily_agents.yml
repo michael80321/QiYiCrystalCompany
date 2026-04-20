@@ -24,6 +24,8 @@ env:
   META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
   META_IG_ACCOUNT_ID: ${{ secrets.META_IG_ACCOUNT_ID }}
   META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
+  THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+  THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
 
 jobs:
   # ── 每6小時 ──────────────────────────────────────
