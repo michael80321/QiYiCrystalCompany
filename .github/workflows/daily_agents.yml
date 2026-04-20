@@ -2,72 +2,197 @@ name: Daily AI Agents
 
 on:
   schedule:
-    - cron: '0 21 * * *'    # 台灣時間 05:00 — 情報引擎、內容生成
-    - cron: '30 21 * * *'   # 台灣時間 05:30 — 圖像產出
-    - cron: '0 22 * * *'    # 台灣時間 06:00 — 影片腳本
-    - cron: '0 23 * * *'    # 台灣時間 07:00 — 數字人影片生成
-    - cron: '0 0 * * *'     # 台灣時間 08:00 — 行銷排程、庫存
-    - cron: '30 0 * * *'    # 台灣時間 08:30 — 決策秘書日報
-  workflow_dispatch:         # 手動觸發（Dashboard 或 GitHub 介面）
+    - cron: '0 21 * * *'    # 台灣時間 05:00
+    - cron: '0 22 * * *'    # 台灣時間 06:00
+    - cron: '0 23 * * *'    # 台灣時間 07:00
+    - cron: '30 23 * * *'   # 台灣時間 07:30 — 決策秘書
+    - cron: '0 0 * * *'     # 台灣時間 08:00
+    - cron: '0 1 * * *'     # 台灣時間 09:00
+    - cron: '0 2 * * *'     # 台灣時間 10:00
+    - cron: '0 15 * * *'    # 台灣時間 23:00 — 財務秘書
+    - cron: '0 */6 * * *'   # 每 6 小時 — 亞太情報
+    - cron: '0 * * * *'     # 每小時 — 系統健康、危機預警
+  workflow_dispatch:
+
+env:
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  SHEETS_ID: ${{ secrets.SHEETS_ID }}
+  GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
 jobs:
-  intelligence:
-    name: 情報引擎
+  # ── 每6小時 ──────────────────────────────────────
+  market_intelligence:
+    name: 亞太市場情報員
     runs-on: ubuntu-latest
-    if: github.event.schedule == '0 21 * * *' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.schedule, '0 */6')
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run market intelligence agent
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SHEETS_ID: ${{ secrets.SHEETS_ID }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-          APIFY_KEY: ${{ secrets.APIFY_KEY }}
-        run: python agents/intelligence/market_intelligence.py
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/intelligence/market_intelligence.py
 
-  content:
-    name: 內容引擎
+  # ── 每日 05:00 ───────────────────────────────────
+  energy_content:
+    name: 能量內容專員
     runs-on: ubuntu-latest
-    if: github.event.schedule == '0 21 * * *' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 21 * * *'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run content agent
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SHEETS_ID: ${{ secrets.SHEETS_ID }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-        run: python agents/content/energy_content.py
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/content/energy_content.py
 
+  trend_researcher:
+    name: 選品趨勢研究員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 21 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/intelligence/trend_researcher.py
+
+  # ── 每日 06:00 ───────────────────────────────────
+  video_scriptwriter:
+    name: 影片腳本員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 22 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/content/video_scriptwriter.py
+
+  pricing_analyst:
+    name: 競品定價策略員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 22 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/intelligence/pricing_analyst.py
+
+  # ── 每日 07:30 — 決策秘書 ────────────────────────
   decision_secretary:
-    name: 決策秘書日報
+    name: 老闆決策秘書
     runs-on: ubuntu-latest
-    if: github.event.schedule == '30 0 * * *' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '30 23 * * *'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run decision secretary
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          SHEETS_ID: ${{ secrets.SHEETS_ID }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-        run: python agents/decision/decision_secretary.py
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/decision/decision_secretary.py
+
+  # ── 每日 08:00 ───────────────────────────────────
+  inventory_manager:
+    name: 採購庫存員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/operations/inventory_manager.py
+
+  member_manager:
+    name: 會員經營員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/operations/member_manager.py
+
+  # ── 每日 09:00 ───────────────────────────────────
+  ads_optimizer:
+    name: 廣告投放優化員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 1 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/marketing/ads_optimizer.py
+
+  # ── 每日 10:00 ───────────────────────────────────
+  kol_tracker:
+    name: KOL合作追蹤員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 2 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/marketing/kol_tracker.py
+
+  # ── 每日 23:00 — 財務秘書 ────────────────────────
+  finance_secretary:
+    name: 財務秘書
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 15 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/finance/finance_secretary.py
+
+  # ── 每小時 ────────────────────────────────────────
+  system_health:
+    name: 系統健康監控員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 * * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/intelligence/system_health.py
+
+  crisis_monitor:
+    name: 危機預警員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 * * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/operations/crisis_monitor.py
+
+  # ── 每週 ─────────────────────────────────────────
+  knowledge_manager:
+    name: 商品知識庫管理員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/intelligence/knowledge_manager.py
+
+  seo_optimizer:
+    name: SEO優化員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/marketing/seo_optimizer.py
