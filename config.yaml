@@ -1,0 +1,35 @@
+brand:
+  name: 騏藝逸品
+  name_en: QiYi Crystal
+  markets: [TW, HK, CN, SEA]
+  languages:
+    TW: zh-TW
+    HK: zh-HK
+    CN: zh-CN
+
+models:
+  image: flux-2-pro
+  image_artistic: midjourney-v8
+  video_talking: heygen-avatar-v
+  video_cinematic: kling-3
+  voice_TW: fish-audio
+  voice_HK: elevenlabs
+  voice_CN: elevenlabs
+
+apis:
+  anthropic_key: ${ANTHROPIC_API_KEY}
+  heygen_key: ${HEYGEN_API_KEY}
+  flux_key: ${FLUX_API_KEY}
+  google_sheets_id: ${SHEETS_ID}
+  line_token: ${LINE_NOTIFY_TOKEN}
+  buffer_token: ${BUFFER_TOKEN}
+  ga4_property: ${GA4_PROPERTY_ID}
+  shopee_partner_id: ${SHOPEE_PARTNER_ID}
+  meta_ads_token: ${META_ADS_TOKEN}
+  apify_key: ${APIFY_KEY}
+
+thresholds:
+  inventory_alert: 20
+  trend_multiplier: 3
+  roas_min: 2.5
+  review_pending_max: 10

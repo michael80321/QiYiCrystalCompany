@@ -1,0 +1,67 @@
+name: Daily AI Agents
+
+on:
+  schedule:
+    - cron: '0 21 * * *'    # 台灣時間 05:00 — 情報引擎、內容生成
+    - cron: '30 21 * * *'   # 台灣時間 05:30 — 圖像產出
+    - cron: '0 22 * * *'    # 台灣時間 06:00 — 影片腳本
+    - cron: '0 23 * * *'    # 台灣時間 07:00 — 數字人影片生成
+    - cron: '0 0 * * *'     # 台灣時間 08:00 — 行銷排程、庫存
+    - cron: '30 0 * * *'    # 台灣時間 08:30 — 決策秘書日報
+  workflow_dispatch:         # 手動觸發（Dashboard 或 GitHub 介面）
+
+jobs:
+  intelligence:
+    name: 情報引擎
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 21 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run market intelligence agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SHEETS_ID: ${{ secrets.SHEETS_ID }}
+          LINE_NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
+          APIFY_KEY: ${{ secrets.APIFY_KEY }}
+        run: python agents/intelligence/market_intelligence.py
+
+  content:
+    name: 內容引擎
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 21 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run content agent
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SHEETS_ID: ${{ secrets.SHEETS_ID }}
+          LINE_NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
+        run: python agents/content/energy_content.py
+
+  decision_secretary:
+    name: 決策秘書日報
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '30 0 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run decision secretary
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SHEETS_ID: ${{ secrets.SHEETS_ID }}
+          LINE_NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
+        run: python agents/decision/decision_secretary.py

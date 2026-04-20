@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment & secrets
+.env
+.env.local
+*.env
+secrets.yaml
+credentials.json
+token.json
+
+# Logs
+logs/*.log
+logs/*.json
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / Next.js
+node_modules/
+dashboard/.next/
+dashboard/out/
+dashboard/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Claude Code local session
+.claude/
