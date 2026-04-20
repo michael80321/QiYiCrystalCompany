@@ -1,5 +1,6 @@
 import { getRecords } from "@/lib/sheets";
 import ReviewCard from "@/components/ReviewCard";
+import BulkActions from "@/components/BulkActions";
 
 export const revalidate = 0;
 
@@ -30,6 +31,8 @@ export default async function ReviewPage() {
       </div>
 
       {/* 待審區 */}
+      {pending.length > 1 && <BulkActions items={pending} />}
+
       {pending.length === 0 ? (
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-12 text-center">
           <div className="text-4xl mb-3">🎉</div>
