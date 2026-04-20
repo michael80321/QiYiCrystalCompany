@@ -20,6 +20,10 @@ env:
   GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
   TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
   TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+  META_IG_ACCOUNT_ID: ${{ secrets.META_IG_ACCOUNT_ID }}
+  META_PAGE_ACCESS_TOKEN: ${{ secrets.META_PAGE_ACCESS_TOKEN }}
 
 jobs:
   # ── 每6小時 ──────────────────────────────────────
@@ -116,6 +120,17 @@ jobs:
       - run: python agents/operations/member_manager.py
 
   # ── 每日 09:00 ───────────────────────────────────
+  social_scheduler:
+    name: 社群自動排程發文員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 1 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/marketing/social_scheduler.py
+
   ads_optimizer:
     name: 廣告投放優化員
     runs-on: ubuntu-latest
