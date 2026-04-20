@@ -1,0 +1,60 @@
+name: Daily Backup
+
+on:
+  schedule:
+    - cron: '0 16 * * *'   # 台灣時間 00:00 每日備份
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: 備份 Sheets 快照
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install gspread google-auth pyyaml
+
+      - name: Export Sheets snapshot
+        env:
+          SHEETS_ID: ${{ secrets.SHEETS_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python - <<'EOF'
+          import os, json, csv
+          from datetime import date
+          import gspread
+          from google.oauth2.service_account import Credentials
+
+          SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+          creds_json = os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"]
+          creds = Credentials.from_service_account_info(json.loads(creds_json), scopes=SCOPES)
+          client = gspread.authorize(creds)
+          sheet = client.open_by_key(os.environ["SHEETS_ID"])
+
+          today = date.today().isoformat()
+          os.makedirs(f"backups/{today}", exist_ok=True)
+
+          for ws in sheet.worksheets():
+              rows = ws.get_all_values()
+              filepath = f"backups/{today}/{ws.title}.csv"
+              with open(filepath, "w", newline="", encoding="utf-8") as f:
+                  csv.writer(f).writerows(rows)
+              print(f"備份：{ws.title} ({len(rows)} 行)")
+
+          print(f"✅ 備份完成：backups/{today}/")
+          EOF
+
+      - name: Commit backup
+        run: |
+          git config user.email "backup@qiyi-ai.com"
+          git config user.name "QiYi Backup Bot"
+          git add backups/
+          git diff --staged --quiet || git commit -m "backup: Sheets 快照 $(date +%Y-%m-%d)"
+          git push
