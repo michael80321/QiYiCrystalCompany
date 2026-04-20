@@ -10,6 +10,10 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from dotenv import load_dotenv
+from pathlib import Path
+load_dotenv(Path(__file__).parent.parent.parent / ".env", override=True)
+
 import anthropic
 import shared.sheets as sheets
 from shared.logger import get_logger, log_execution
