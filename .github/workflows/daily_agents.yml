@@ -7,7 +7,10 @@ on:
     - cron: '0 23 * * *'    # 台灣時間 07:00
     - cron: '30 23 * * *'   # 台灣時間 07:30 — 決策秘書
     - cron: '0 0 * * *'     # 台灣時間 08:00
+    - cron: '0 23 * * 1'    # 週一 07:00 — 選品委員會
+    - cron: '0 0 * * 2'     # 週二 08:00 — 蝦皮上架員
     - cron: '0 1 * * *'     # 台灣時間 09:00
+    - cron: '30 1 * * *'    # 台灣時間 09:30 — 企業BD員
     - cron: '0 2 * * *'     # 台灣時間 10:00
     - cron: '0 15 * * *'    # 台灣時間 23:00 — 財務秘書
     - cron: '0 */6 * * *'   # 每 6 小時 — 亞太情報
@@ -190,6 +193,40 @@ jobs:
         with: { python-version: '3.11' }
       - run: pip install -r requirements.txt
       - run: python agents/operations/crisis_monitor.py
+
+  # ── BD 開發引擎 ──────────────────────────────────
+  product_curator:
+    name: 選品委員會員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 23 * * 1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/bd/product_curator.py
+
+  shopee_lister:
+    name: 蝦皮自動上架員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0 * * 2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/bd/shopee_lister.py
+
+  corporate_bd:
+    name: 企業禮品開發員
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '30 1 * * *'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt
+      - run: python agents/bd/corporate_bd.py
 
   # ── 每週 ─────────────────────────────────────────
   knowledge_manager:
